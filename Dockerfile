@@ -6,40 +6,34 @@ RUN rm -rf /usr/local/tomcat/webapps/*
 # Copy WAR file
 COPY AjaraBazar.war /usr/local/tomcat/webapps/ROOT.war
 
-# Download MySQL connector
+# Download MySQL connector directly
 ADD https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.2.0/mysql-connector-j-9.2.0.jar /usr/local/tomcat/lib/mysql-connector.jar
 
-# Create startup script with debug
-RUN echo '#!/bin/bash' > /usr/local/tomcat/bin/start.sh && \
-    echo '# Debug: Print all environment variables' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "=== ALL ENVIRONMENT VARIABLES ==="' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'env | sort' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "================================="' >> /usr/local/tomcat/bin/start.sh && \
-    echo '' >> /usr/local/tomcat/bin/start.sh && \
-    echo '# Export Railway MySQL variables' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'export MYSQLHOST="'"${MYSQLHOST}"'"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'export MYSQLPORT="'"${MYSQLPORT}"'"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'export MYSQLDATABASE="'"${MYSQLDATABASE}"'"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'export MYSQLUSER="'"${MYSQLUSER}"'"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'export MYSQLPASSWORD="'"${MYSQLPASSWORD}"'"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'export MYSQL_URL="'"${MYSQL_URL}"'"' >> /usr/local/tomcat/bin/start.sh && \
-    echo '' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "=== EXPORTED MYSQL VARIABLES ==="' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "MYSQLHOST: $MYSQLHOST"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "MYSQLPORT: $MYSQLPORT"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "MYSQLDATABASE: $MYSQLDATABASE"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "MYSQLUSER: $MYSQLUSER"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "MYSQLPASSWORD: ${MYSQLPASSWORD:0:10}..."' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "MYSQL_URL: $MYSQL_URL"' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'echo "================================"' >> /usr/local/tomcat/bin/start.sh && \
-    echo '' >> /usr/local/tomcat/bin/start.sh && \
-    echo '# Start Tomcat' >> /usr/local/tomcat/bin/start.sh && \
-    echo 'exec catalina.sh run' >> /usr/local/tomcat/bin/start.sh && \
-    chmod +x /usr/local/tomcat/bin/start.sh
+# Create a setenv.sh file to set environment variables for Tomcat
+RUN echo '#!/bin/bash' > /usr/local/tomcat/bin/setenv.sh && \
+    echo 'export MYSQLHOST="mysql.railway.internal"' >> /usr/local/tomcat/bin/setenv.sh && \
+    echo 'export MYSQLPORT="3306"' >> /usr/local/tomcat/bin/setenv.sh && \
+    echo 'export MYSQLDATABASE="railway"' >> /usr/local/tomcat/bin/setenv.sh && \
+    echo 'export MYSQLUSER="root"' >> /usr/local/tomcat/bin/setenv.sh && \
+    echo 'export MYSQLPASSWORD="pTmEMwqyojydgyspyqIWKkvEgBjxlRhA"' >> /usr/local/tomcat/bin/setenv.sh && \
+    echo 'export MYSQL_URL="jdbc:mysql://mysql.railway.internal:3306/railway?useSSL=false&allowPublicKeyRetrieval=true"' >> /usr/local/tomcat/bin/setenv.sh && \
+    chmod +x /usr/local/tomcat/bin/setenv.sh
+
+# Configure Tomcat to use setenv.sh
+RUN echo '#!/bin/bash' > /usr/local/tomcat/bin/startup.sh && \
+    echo 'source /usr/local/tomcat/bin/setenv.sh' >> /usr/local/tomcat/bin/startup.sh && \
+    echo 'echo "=== MySQL Environment Variables ==="' >> /usr/local/tomcat/bin/startup.sh && \
+    echo 'echo "MYSQLHOST: $MYSQLHOST"' >> /usr/local/tomcat/bin/startup.sh && \
+    echo 'echo "MYSQLPORT: $MYSQLPORT"' >> /usr/local/tomcat/bin/startup.sh && \
+    echo 'echo "MYSQLDATABASE: $MYSQLDATABASE"' >> /usr/local/tomcat/bin/startup.sh && \
+    echo 'echo "MYSQLUSER: $MYSQLUSER"' >> /usr/local/tomcat/bin/startup.sh && \
+    echo 'echo "================================"' >> /usr/local/tomcat/bin/startup.sh && \
+    echo 'exec catalina.sh run' >> /usr/local/tomcat/bin/startup.sh && \
+    chmod +x /usr/local/tomcat/bin/startup.sh
 
 # Ensure Tomcat listens on all interfaces
 RUN sed -i 's/port="8080"/port="8080" address="0.0.0.0"/' /usr/local/tomcat/conf/server.xml
 
 EXPOSE 8080
 
-CMD ["/usr/local/tomcat/bin/start.sh"]
+CMD ["/usr/local/tomcat/bin/startup.sh"]
