@@ -6,7 +6,10 @@ RUN rm -rf /usr/local/tomcat/webapps/*
 # Copy WAR file
 COPY AjaraBazar.war /usr/local/tomcat/webapps/ROOT.war
 
-# Expose port 8080
+# Configure Tomcat to use Railway's PORT
+ENV CATALINA_OPTS="-Dport=${PORT}"
+
+# Expose port
 EXPOSE 8080
 
 # Start Tomcat
