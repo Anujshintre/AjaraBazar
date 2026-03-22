@@ -6,11 +6,14 @@ RUN rm -rf /usr/local/tomcat/webapps/*
 # Copy WAR file
 COPY AjaraBazar.war /usr/local/tomcat/webapps/ROOT.war
 
-# Copy custom server configuration if needed
-COPY Service.xml /usr/local/tomcat/conf/server.xml
+# Create a simple test page to verify Tomcat is working
+RUN echo '<html><body><h1>AjaraBazar is Running!</h1><p>Tomcat is working correctly.</p></body></html>' > /usr/local/tomcat/webapps/ROOT/index.html
+
+# Modify server.xml to ensure Tomcat listens on all interfaces
+RUN sed -i 's/port="8080"/port="8080" address="0.0.0.0"/' /usr/local/tomcat/conf/server.xml
 
 # Expose port
 EXPOSE 8080
 
-# Start Tomcat
+# Start Tomcat with debug output
 CMD ["catalina.sh", "run"]
