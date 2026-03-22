@@ -1,11 +1,5 @@
 {
   "build": {
     "builder": "DOCKERFILE"
-  },
-  "deploy": {
-    "startCommand": "catalina.sh run",
-    "healthcheckPath": "/index",
-    "healthcheckTimeout": 300,
-    "restartPolicyType": "ON_FAILURE"
   }
 }
