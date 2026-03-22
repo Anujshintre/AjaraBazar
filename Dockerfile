@@ -6,9 +6,12 @@ RUN rm -rf /usr/local/tomcat/webapps/*
 # Copy WAR file
 COPY AjaraBazar.war /usr/local/tomcat/webapps/ROOT.war
 
-# Create a simple startup script that exports variables
+# Download MySQL connector directly to Tomcat lib
+ADD https://repo1.maven.org/maven2/com/mysql/mysql-connector-j/9.2.0/mysql-connector-j-9.2.0.jar /usr/local/tomcat/lib/mysql-connector.jar
+
+# Create startup script
 RUN echo '#!/bin/bash' > /usr/local/tomcat/bin/start.sh && \
-    echo '# Export all Railway environment variables' >> /usr/local/tomcat/bin/start.sh && \
+    echo '# Export Railway environment variables' >> /usr/local/tomcat/bin/start.sh && \
     echo 'export MYSQLHOST="'"${MYSQLHOST}"'"' >> /usr/local/tomcat/bin/start.sh && \
     echo 'export MYSQLPORT="'"${MYSQLPORT}"'"' >> /usr/local/tomcat/bin/start.sh && \
     echo 'export MYSQLDATABASE="'"${MYSQLDATABASE}"'"' >> /usr/local/tomcat/bin/start.sh && \
